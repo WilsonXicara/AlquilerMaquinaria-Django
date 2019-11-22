@@ -5,9 +5,9 @@ User model.
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 # Utilities
-from mrental.utils.models import MRBaseModel
+from mrental.utils.models import MRBaseModel, MRAbstractBaseModel
 
-class User(MRBaseModel, AbstractUser):
+class User(MRAbstractBaseModel, AbstractUser):
     """
     User model.
 
