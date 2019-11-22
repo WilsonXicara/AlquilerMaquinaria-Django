@@ -10,7 +10,7 @@ from mrental.machineries.serializers import MachineryModelSerializer
 
 class MachineryViewSet(mixins.CreateModelMixin,     # Crear nuevos registros
                        mixins.RetrieveModelMixin,   # Obtener un registro específico
-                       mixins.ListModelMixin,        # LIstar todos los registros
+                       mixins.ListModelMixin,       # LIstar todos los registros
                        viewsets.GenericViewSet):
     """
     Machinery view set.

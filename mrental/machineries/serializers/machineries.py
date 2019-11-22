@@ -33,7 +33,7 @@ class MachineryModelSerializer(serializers.ModelSerializer):
         )
         # Campos que no pueden ser sobreescritos
         read_only_fields = (
-            'is_rented',
+            'is_rented', 'is_active'
         )
     
     def validate_default_amount(self, data):
