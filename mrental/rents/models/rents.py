@@ -10,6 +10,10 @@ class Rental(MRBaseModel):
     """
     Rental model.
     """
+    code = models.SlugField(
+        unique=True,
+        max_length=50
+    )
     machinery = models.ForeignKey(
         'machineries.Machinery',
         on_delete=models.SET_NULL,  # Se conserva el alquiler en caso de eliminar la maquinaria

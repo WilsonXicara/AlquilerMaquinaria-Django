@@ -14,6 +14,8 @@ from mrental.machineries.serializers import MachineryModelSerializer
 from mrental.users.serializers import UserModelSerializaer
 # Utilities
 from datetime import timedelta
+import random
+from string import ascii_uppercase, digits
 from django.utils import timezone
 
 class RentalModelSerializer(serializers.ModelSerializer):
@@ -39,9 +41,12 @@ class CreateRentalSerializer(serializers.ModelSerializer):
     """
     Create Rental serializer
     """
+    CODE_LENGTH = 20
+    POOL = ascii_uppercase + digits
     # De esta forma el client_id es requerido
     client_code = serializers.CharField()
     rental_amount = serializers.FloatField()
+    code = serializers.CharField(required=False)
 
     class Meta:
         """
@@ -83,14 +88,20 @@ class CreateRentalSerializer(serializers.ModelSerializer):
     
     def create(self, data):
         """
-        Create rental and update machinery
+        Create rental and update machinery.
+        A unique code is generated to identify the rental.
         """
+        # Generando el código único para el alquiler
+        code = ''.join(random.choices(self.POOL, k=self.CODE_LENGTH))
+        while Rental.objects.filter(code=code, is_active=True).exists():
+            code = ''.join(random.choices(self.POOL, k=self.CODE_LENGTH))
         data.pop('client_code')
         machinery = self.context['machinery']
         client = self.context['client']
         rented_by = None    # @Pendiente. Obtener el usuario desde el request
         rental = Rental.objects.create(
             **data,
+            code=code,
             machinery=machinery,
             client=client,
             rented_by=rented_by
