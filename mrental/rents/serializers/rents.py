@@ -31,7 +31,13 @@ class RentalModelSerializer(serializers.ModelSerializer):
         Meta class.
         """
         model = Rental
-        fields = '__all__'
+        fields = (
+            'code',
+            'machinery', 'client', 'rented_by',
+            'rental_amount', 'start_date', 'end_date',
+            'rental_address', 'description',
+            'is_active', 'elimination_reason',
+        )
         # Atributos que no van a cambiar
         read_only_fields = (
             'is_active',
@@ -108,5 +114,52 @@ class CreateRentalSerializer(serializers.ModelSerializer):
         )
         # Update the Machinery
         machinery.is_rented = True
+        machinery.save()
+        return rental
+
+class FinishRentalSerializer(serializers.Serializer):
+    """
+    The rental of a machinery ends.
+    The machinery is available for new rentals (is_rented=False)
+    """
+    comments = serializers.CharField()
+
+    class Meta:
+        """
+        Meta class.
+        """
+        model = Rental
+        fields = ('comments',)
+    
+    # def validate_comments(self, data):
+    #     print('Hello World')
+    #     return data
+
+    def validate(self, data):
+        """
+        Validate:
+            + That a comment be specified
+            + That the rental can be finalized
+        """
+        # if data.get('comments', None) is None:
+        #     raise serializers.ValidationError('No comment provided')
+        rental = self.context['rental']
+        if not rental.is_active:
+            raise serializers.ValidationError('The rental has already been finalized')
+        return data
+    
+    def update(self, instance, data):
+        """
+        Finish the rental and start the machinery as available to be rented
+        """
+        # @Pendiente. Asociar User que realiza la finalización del alquiler
+        rental = self.context['rental']
+        machinery = self.context['machinery']
+        # Update Rental
+        rental.is_active = False
+        rental.elimination_reason = data.pop('comments')
+        rental.save()
+        # Update Machinery
+        machinery.is_rented = False
         machinery.save()
         return rental

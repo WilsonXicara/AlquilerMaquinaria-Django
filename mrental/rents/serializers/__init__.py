@@ -1,4 +1,5 @@
 from .rents import (
     RentalModelSerializer,
-    CreateRentalSerializer
+    CreateRentalSerializer,
+    FinishRentalSerializer,
 )

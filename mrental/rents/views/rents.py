@@ -13,6 +13,7 @@ from mrental.rents.models import Rental
 from mrental.rents.serializers import (
     CreateRentalSerializer,
     RentalModelSerializer,
+    FinishRentalSerializer,
 )
 # Permissions
 from rest_framework.permissions import IsAuthenticated
@@ -28,6 +29,7 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
     """
     Rental view set.
     """
+    lookup_field = 'code'
 #     permission_classes = [IsAuthenticated,]
 #     # Filters
 #     # Tomar en cuenta que estos filtros se aplican sobre el QuerySet definido en el ViewSet
@@ -47,7 +49,7 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
         # La Machinery está en el primer nivel de la URL, por lo que debería estar presente en todas las demas URL
         # Se verifica que cada vez que se valide esta vista, la Machinery esté disponible a toda la clase
         # Esto viene de la URL
-        code = kwargs['code']
+        code = kwargs['code_machinery']
         self.machinery = get_object_or_404(Machinery, code=code, is_active=True)
         return super(RentalViewSet, self).dispatch(request, *args, **kwargs)
 
@@ -75,15 +77,19 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
         """
         if self.action == 'create':
             return CreateRentalSerializer
+        if self.action == 'finish':
+            return FinishRentalSerializer
         return RentalModelSerializer
     
     def get_queryset(self):
         """
         Return active machinery's rents.
         """
-        return self.machinery.rental_set.filter(
-            is_active=True
-        )
+        if self.action not in ['finish']:
+            return self.machinery.rental_set.filter(
+                is_active=True
+            )
+        return self.machinery.rental_set.all()
     
     def create(self, request, *args, **kwargs):
         """
@@ -98,3 +104,23 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
         rental = serializer.save()
         data = RentalModelSerializer(rental).data
         return Response(data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'])
+    def finish(self, request, *args, **kwargs):
+        """
+        Call by Admin user to finish a Rental.
+        """
+        rental = self.get_object()
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(
+            rental,
+            data=request.data,
+            context={
+                'rental': rental,
+                'machinery': self.machinery
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        rental = serializer.save()
+        data = RentalModelSerializer(rental).data
+        return Response(data, status=status.HTTP_200_OK)
