@@ -38,6 +38,7 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
 ]
 THIRD_PARTY_APPS = [
+    'rest_framework.authtoken',
 ]
 LOCAL_APPS = [
     'mrental.clients.apps.ClientsAppConfig',

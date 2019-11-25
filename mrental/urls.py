@@ -13,5 +13,6 @@ urlpatterns = [
     # Apps
     path('api/v1/', include(('mrental.machineries.urls', 'machineries'), namespace='machineries')),
     path('api/v1/', include(('mrental.clients.urls', 'clients'), namespace='clients')),
-    path('api/v1/', include(('mrental.rents.urls', 'rents'), namespace='retns')),
+    path('api/v1/', include(('mrental.rents.urls', 'rents'), namespace='rents')),
+    path('api/v1/', include(('mrental.users.urls', 'rents'), namespace='users')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
