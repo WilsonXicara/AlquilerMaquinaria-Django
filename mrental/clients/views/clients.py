@@ -3,6 +3,8 @@ Client views.
 """
 # Django REST Framework
 from rest_framework import mixins, status, viewsets
+# Permissions
+from rest_framework.permissions import IsAuthenticated
 # Models
 from mrental.clients.models import Client
 # Serializers
@@ -24,3 +26,10 @@ class ClientViewSet(mixins.CreateModelMixin,     # Crear nuevos registros
         """
         queryset = Client.objects.filter(is_active=True)
         return queryset
+    
+    def get_permissions(self):
+        """
+        Assign permissions based on action.
+        """
+        permissions = [IsAuthenticated]
+        return [permission() for permission in permissions]

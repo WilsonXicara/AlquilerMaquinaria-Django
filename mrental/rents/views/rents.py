@@ -55,15 +55,12 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
         self.machinery = get_object_or_404(Machinery, code=code, is_active=True)
         return super(RentalViewSet, self).dispatch(request, *args, **kwargs)
 
-#     def get_permissions(self):
-#         """
-#         Assign permission based on action.
-#         """
-#         permissions = [IsAuthenticated, IsActiveCircleMemberPermission,]
-#         if self.action in ['update', 'partial_update', 'finish']:
-#             # Sólo el dueño del ride puede actualizar o finalizar el Ride
-#             permissions.append(IsRideOwnerPermission)
-#         return [permission() for permission in permissions]
+    def get_permissions(self):
+        """
+        Assign permission based on action.
+        """
+        permissions = [IsAuthenticated]
+        return [permission() for permission in permissions]
 
     def get_serializer_context(self):
         """
@@ -98,9 +95,11 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
         Create a Rental
         """
         serializer_class = self.get_serializer_class()
+        context = self.get_serializer_context()
+        context['request'] = request
         serializer = serializer_class(
             data=request.data,
-            context=self.get_serializer_context()
+            context=context
         )
         serializer.is_valid(raise_exception=True)
         rental = serializer.save()
@@ -134,6 +133,13 @@ class RentalResumeViewSet(mixins.ListModelMixin,      # Listar todos
     """
     queryset = Rental.objects.all()
 
+    def get_permissions(self):
+        """
+        Assign permission based on action.
+        """
+        permissions = [IsAuthenticated]
+        return [permission() for permission in permissions]
+
     def list(self, request, *args, **kwargs):
         """
         Get the data according to the specified parameters.
@@ -155,8 +161,14 @@ class RentalResumeViewSet(mixins.ListModelMixin,      # Listar todos
         # Aplicando la operación especificada
         if operation == 'average':
             data['operation'] = operation
-            data['value'] = total_rents.aggregate(Avg('rental_amount'))['rental_amount__avg']
+            data['value'] = round(
+                total_rents.aggregate(Avg('rental_amount'))['rental_amount__avg'],
+                2
+            )
         else:
             data['operation'] = 'total'
-            data['value'] = total_rents.aggregate(Sum('rental_amount'))['rental_amount__sum']
+            data['value'] = round(
+                total_rents.aggregate(Sum('rental_amount'))['rental_amount__sum'],
+                2
+            )
         return Response(data, status=status.HTTP_200_OK)

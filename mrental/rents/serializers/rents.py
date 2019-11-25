@@ -88,7 +88,7 @@ class CreateRentalSerializer(serializers.ModelSerializer):
         try:
             client = Client.objects.get(code=client_code, is_active=True)
             self.context['client'] = client
-        except Client.DoesNotExists:
+        except Client.DoesNotExist:
             raise serializers.ValidationError('There is no active Client with the specified code')
         return data
     
@@ -104,7 +104,7 @@ class CreateRentalSerializer(serializers.ModelSerializer):
         data.pop('client_code')
         machinery = self.context['machinery']
         client = self.context['client']
-        rented_by = None    # @Pendiente. Obtener el usuario desde el request
+        rented_by = self.context['request'].user
         rental = Rental.objects.create(
             **data,
             code=code,
@@ -130,10 +130,6 @@ class FinishRentalSerializer(serializers.Serializer):
         """
         model = Rental
         fields = ('comments',)
-    
-    # def validate_comments(self, data):
-    #     print('Hello World')
-    #     return data
 
     def validate(self, data):
         """
