@@ -1,1 +1,1 @@
-from .rents import RentalViewSet
+from .rents import RentalViewSet, RentalResumeViewSet

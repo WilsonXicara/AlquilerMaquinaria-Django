@@ -1,6 +1,8 @@
 """
 Rents ViewSet
 """
+# Django
+from django.db.models import Avg, Sum
 # Django REST Framework
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -123,4 +125,38 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
         serializer.is_valid(raise_exception=True)
         rental = serializer.save()
         data = RentalModelSerializer(rental).data
+        return Response(data, status=status.HTTP_200_OK)
+
+class RentalResumeViewSet(mixins.ListModelMixin,      # Listar todos
+                          viewsets.GenericViewSet):
+    """
+    Summary ViewSet
+    """
+    queryset = Rental.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        """
+        Get the data according to the specified parameters.
+        """
+        total_rents = self.get_queryset()
+        machinery_code = request.query_params.get('machinery_code', None)
+        operation = request.query_params.get('operation', 'total')
+        data = {
+            'machinery': '__all__',
+            'operation': 'total',
+            'value': 0
+        }
+        # Filtrando registros
+        if machinery_code is not None:
+            total_rents = total_rents.filter(
+                machinery__code=machinery_code
+            )
+            data['machinery'] = machinery_code
+        # Aplicando la operación especificada
+        if operation == 'average':
+            data['operation'] = operation
+            data['value'] = total_rents.aggregate(Avg('rental_amount'))['rental_amount__avg']
+        else:
+            data['operation'] = 'total'
+            data['value'] = total_rents.aggregate(Sum('rental_amount'))['rental_amount__sum']
         return Response(data, status=status.HTTP_200_OK)
