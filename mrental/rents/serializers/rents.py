@@ -141,7 +141,7 @@ class FinishRentalSerializer(serializers.Serializer):
         #     raise serializers.ValidationError('No comment provided')
         rental = self.context['rental']
         if not rental.is_active:
-            raise serializers.ValidationError('The rental has already been finalized')
+            raise serializers.ValidationError('The rental has already been finalized or deleted')
         return data
     
     def update(self, instance, data):

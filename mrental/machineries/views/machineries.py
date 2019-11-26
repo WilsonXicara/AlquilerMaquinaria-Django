@@ -91,7 +91,9 @@ class MachineryViewSet(mixins.CreateModelMixin,     # Crear nuevos registros
                 machinery_data[value] = machinery[value]
             not_rented_json.append(machinery_data)
         data = {
+            'rented_count': len(rented_json),
             'rented': rented_json,
+            'not_rented_count': len(not_rented_json),
             'not_rented': not_rented_json
         }
         return Response(data=data)

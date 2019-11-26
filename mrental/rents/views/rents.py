@@ -66,7 +66,7 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
         """
         if self.action == 'create':
             return CreateRentalSerializer
-        if self.action == 'finish':
+        if self.action in ['finish', 'delete', 'update']:
             return FinishRentalSerializer
         return RentalModelSerializer
     
@@ -74,7 +74,7 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
         """
         Return active machinery's rents.
         """
-        if self.action not in ['finish']:
+        if self.action not in ['finish', 'delete']:
             return self.machinery.rental_set.filter(
                 is_active=True
             )
@@ -113,6 +113,30 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
         )
         serializer.is_valid(raise_exception=True)
         rental = serializer.save()
+        data = RentalModelSerializer(rental).data
+        return Response(data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['delete'])
+    def delete(self, request, *args, **kwargs):
+        """
+        Call by Admin user to delete a Rental.
+        """
+        rental = self.get_object()
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(
+            rental,
+            data=request.data,
+            context={
+                'rental': rental,
+                'machinery': self.machinery
+            },
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        rental = serializer.save()
+        rental.rental_amount = 0
+        rental.elimination_reason = 'Rental deleted'
+        rental.save()
         data = RentalModelSerializer(rental).data
         return Response(data, status=status.HTTP_200_OK)
 
