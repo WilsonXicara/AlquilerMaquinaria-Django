@@ -29,15 +29,25 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
 ]
+THIRD_PARTY_APPS = [
+    'rest_framework.authtoken',
+]
+LOCAL_APPS = [
+    'mrental.clients.apps.ClientsAppConfig',
+    'mrental.machineries.apps.MachineriesAppConfig',
+    'mrental.rents.apps.RentsAppConfig',
+    'mrental.users.apps.UsersAppConfig',
+]
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -75,11 +85,18 @@ WSGI_APPLICATION = 'mrental.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'mrental_db',
+        'USER': 'mrental',
+        'PASSWORD': '@mrental',
+        'HOST': 'localhost',
+        'PORT': '5432'
     }
 }
 
+# Substituting a custom User model
+# https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#substituting-a-custom-user-model
+AUTH_USER_MODEL = 'users.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -118,3 +135,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')    # URL de dónde estarán los archivos
+MEDIA_URL = '/media/'                           # URL que se formará para traer estos archivos
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    # De esta forma, la paginación se aplica a toda la API
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 5
+}
