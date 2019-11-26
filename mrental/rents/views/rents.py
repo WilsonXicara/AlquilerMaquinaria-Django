@@ -32,17 +32,6 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
     Rental view set.
     """
     lookup_field = 'code'
-#     permission_classes = [IsAuthenticated,]
-#     # Filters
-#     # Tomar en cuenta que estos filtros se aplican sobre el QuerySet definido en el ViewSet
-#     filter_backends = (SearchFilter, OrderingFilter,)
-#     # Orden por defecto. No necesita especificarse entre los parámetros
-#     ordering = ('departure_date', 'arrival_date', 'available_seats',)
-#     # El filtro se aplica especificando uno de los campos aquí definidos. El parámetro es:
-#     #   ordering=[-]FIELD_NAME          (El '-' indica que el orden será descendente)
-#     ordering_fields = ('departure_date', 'arrival_date', 'available_seats',)
-#     # El filtro se aplica a los campos especificados, con el parámetro 'search=VALOR'
-#     search_fields = ('departure_location', 'arrival_location',)
 
     def dispatch(self, request, *args, **kwargs):
         """
