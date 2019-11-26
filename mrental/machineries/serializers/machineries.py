@@ -33,7 +33,7 @@ class MachineryModelSerializer(serializers.ModelSerializer):
         )
         # Campos que no pueden ser sobreescritos
         read_only_fields = (
-            'is_rented', 'is_active'
+            'code', 'is_rented', 'is_active'
         )
     
     def validate_default_amount(self, data):
@@ -43,17 +43,19 @@ class MachineryModelSerializer(serializers.ModelSerializer):
         if data < 0.0:
             raise serializers.ValidationError('The value of the amount must be greater than 0.0')
         return data
-    
-    def validate_empty_values(self, data):
+
+    def validate(self, data):
         """
         Validates that the code provided by the user is unique,
         or generates a unique code if the user does not provide it.
         """
         # Se crea un nuevo código único
         code = data.get('code', None)
-        if code is None:
+        if code is not None and Machinery.objects.filter(code=code).exists():
+            raise serializers.ValidationError('There is already a registered machinery with the code provided')
+        else:
             code = ''.join(random.choices(self.POOL, k=self.CODE_LENGTH))
             while Machinery.objects.filter(code=code, is_active=True).exists():
                 code = ''.join(random.choices(self.POOL, k=self.CODE_LENGTH))
             data['code'] = code
-        return super(MachineryModelSerializer, self).validate_empty_values(data)
+        return data

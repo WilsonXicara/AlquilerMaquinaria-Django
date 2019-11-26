@@ -20,6 +20,7 @@ from mrental.users.serializers import (
 from mrental.users.models import User
 
 class UserViewSet(mixins.RetrieveModelMixin,
+                  mixins.ListModelMixin,        # Listar todos los registros
                   mixins.UpdateModelMixin,      # Para permitir la actualización de un registro
                   viewsets.GenericViewSet):
     """
@@ -28,9 +29,14 @@ class UserViewSet(mixins.RetrieveModelMixin,
     Handle sign up, login and account verification.
     """
     # Siempre que se incluye 'RetrieveModelMixin' hay que configurar un queryset base desde el cual se hará el queryset del detalle
-    queryset = User.objects.filter(is_active=True, is_client=True)
-    serializer_class = UserModelSerializaer
     lookup_field = 'username'
+
+    def get_queryset(self):
+        """
+        Restrict list to is_active only
+        """
+        queryset = User.objects.filter(is_active=True)
+        return queryset
 
     def get_permissions(self):
         """
@@ -41,6 +47,16 @@ class UserViewSet(mixins.RetrieveModelMixin,
         else:
             permissions = [IsAuthenticated]
         return [permission() for permission in permissions]
+
+    def get_serializer_class(self):
+        """
+        Return serializer based on action.
+        """
+        if self.action == 'signup':
+            return UserSignUpSerializer
+        if self.action == 'login':
+            return UserLoginSerializer
+        return UserModelSerializaer
 
     @action(detail=False, methods=['post'])
     def signup(self, request):

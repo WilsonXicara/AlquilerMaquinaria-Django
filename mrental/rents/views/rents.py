@@ -19,6 +19,7 @@ from mrental.rents.serializers import (
 )
 # Permissions
 from rest_framework.permissions import IsAuthenticated
+from mrental.users.permissions.users import IsSuperUserPermission
 # Utils
 from datetime import timedelta
 from django.utils import timezone
@@ -48,7 +49,7 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
         """
         Assign permission based on action.
         """
-        permissions = [IsAuthenticated]
+        permissions = [IsAuthenticated, IsSuperUserPermission]
         return [permission() for permission in permissions]
 
     def get_serializer_context(self):
@@ -78,7 +79,7 @@ class RentalViewSet(mixins.ListModelMixin,      # Listar todos
                 is_active=True
             )
         return self.machinery.rental_set.all()
-    
+
     def create(self, request, *args, **kwargs):
         """
         Create a Rental

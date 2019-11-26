@@ -21,7 +21,7 @@ class User(MRAbstractBaseModel, AbstractUser):
             'unique': 'A user with than email alredy exists.'       # Mensaje de error en la creación de un registro
         }
     )
-    is_client= models.BooleanField(
+    is_client = models.BooleanField(
         'client status',
         default=False,
         help_text=('For future use. User account for a customer')

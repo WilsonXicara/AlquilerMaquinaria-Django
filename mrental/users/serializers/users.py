@@ -21,10 +21,14 @@ class UserModelSerializaer(serializers.ModelSerializer):
         """
         model = User
         fields = (
-            'email', 'username',
-            'first_name',
-            'last_name',
+            'username', 'email',
+            'first_name', 'last_name',
             'is_active',
+            'is_client', 'is_superuser',
+        )
+        # Campos que no pueden ser sobreescritos
+        read_only_fields = (
+            'username', 'email', 'is_active', 'is_client', 'is_superuser',
         )
 
 class UserSignUpSerializer(serializers.Serializer):

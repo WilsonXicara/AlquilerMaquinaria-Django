@@ -24,10 +24,10 @@ class ClientModelSerializer(serializers.ModelSerializer):
         )
         # Campos que no pueden ser sobreescritos
         read_only_fields = (
-            'is_active',
+            'code', 'is_active',
         )
     
-    def validate_empty_values(self, data):
+    def validate(self, data):
         """
         Validates that the code provided by the user is unique,
         or generates a unique code if the user does not provide it.
@@ -36,7 +36,7 @@ class ClientModelSerializer(serializers.ModelSerializer):
         code = data.get('code', None)
         if code is None:
             code = ''.join(random.choices(self.POOL, k=self.CODE_LENGTH))
-            while Client.objects.filter(code=code, is_active=True).exists():
+            while Client.objects.filter(code=code,).exists():
                 code = ''.join(random.choices(self.POOL, k=self.CODE_LENGTH))
             data['code'] = code
-        return super(ClientModelSerializer, self).validate_empty_values(data)
+        return data

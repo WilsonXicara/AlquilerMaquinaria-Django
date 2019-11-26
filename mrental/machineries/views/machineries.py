@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 # Permissions
 from rest_framework.permissions import IsAuthenticated
+from mrental.users.permissions.users import IsSuperUserPermission
 # Models
 from mrental.machineries.models import Machinery
 from mrental.rents.models import Rental
@@ -16,6 +17,7 @@ from mrental.machineries.serializers import MachineryModelSerializer
 class MachineryViewSet(mixins.CreateModelMixin,     # Crear nuevos registros
                        mixins.RetrieveModelMixin,   # Obtener un registro específico
                        mixins.ListModelMixin,       # LIstar todos los registros
+                       mixins.UpdateModelMixin,     # Para actualizar un registro
                        viewsets.GenericViewSet):
     """
     Machinery view set.
@@ -34,8 +36,27 @@ class MachineryViewSet(mixins.CreateModelMixin,     # Crear nuevos registros
         """
         Assign permissions based on action.
         """
-        permissions = [IsAuthenticated]
+        permissions = [IsAuthenticated, IsSuperUserPermission]
         return [permission() for permission in permissions]
+
+    def get_serializer_class(self):
+        """
+        Return serializer based on action.
+        """
+        return MachineryModelSerializer
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create a Machinery
+        """
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(
+            data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+        machinery = serializer.save()
+        data = serializer.data
+        return Response(data, status=status.HTTP_201_CREATED)
     
     @action(detail=False, methods=['get'])
     def rents(self, request, *args, **kwargs):
@@ -44,15 +65,17 @@ class MachineryViewSet(mixins.CreateModelMixin,     # Crear nuevos registros
         """
         rented_json, not_rented_json = [], []
         # Obteniendo las Maquinarias rentadas
-        values_rented = ['code','machinery__code','machinery__machinery_type','machinery__name','machinery__default_amount',]
+        values_rented = ['code', 'rental_amount','machinery__code','machinery__machinery_type','machinery__name','machinery__default_amount',]
         rented = Rental.objects.filter(
             is_active=True,
             machinery__is_active=True
         ).values(*tuple(values_rented))
         values_rented.remove('code')
+        values_rented.remove('rental_amount')
         for machinery in rented:
             machinery_data = {}
             machinery_data['rental_code'] = machinery['code']
+            machinery_data['rental_amount'] = machinery['rental_amount']
             for value in values_rented:
                 machinery_data[value.replace('machinery__','')] = machinery[value]
             rented_json.append(machinery_data)
